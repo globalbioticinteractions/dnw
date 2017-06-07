@@ -64,7 +64,7 @@ case class CategoryOther(parentTaxon: Cat, childCategories: Seq[Cat])
 
      val categoriesOther = Seq(
       CategoryOther(Cat("Cnidaria", "GBIF", 43),
-        Seq(Cat("Anthozoa", "GBIF", 206), Cat("Medusozoa", "ITIS", 718920))),
+        Seq(Cat("Anthozoa", "GBIF", 206))),
       CategoryOther(Cat("Annelida", "GBIF", 42),
         Seq(Cat("Polychaeta", "GBIF", 256), Cat("Clitellata", "ITIS", 718920))),//,
           //Cat("Archiannelida", "no:match"))), // this taxon appears to be dubious (https://en.wikipedia.org/wiki/Haplodrili)
