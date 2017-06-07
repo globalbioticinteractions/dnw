@@ -30,11 +30,12 @@ val trophicOnly = sourceTarget.filter( x => List("eats","eatenBy","preysOn","pre
 val consumerFood = trophicOnly.map { trophic => trophic match { case (food, "eatenBy", consumer) => (consumer, food) case (food, "preyedUponBy", consumer) => (consumer, food) case (consumer, _, food) => (consumer, food) } }
 
 val fishFood = consumerFood.filter(_._1.contains("FBC:FB:SpecCode:")).filter(_._1.contains("GBIF:")).filter(_._2.contains("GBIF:"))
+
 val fishConsumerIdsFoodIds = fishFood.flatMap { case(fishIds, foodIds) => 
 	val ids = fishIds.split("\\|").map(_.trim)
 	val idFB = ids.filter(_.startsWith("FBC:FB:SpecCode")).map(_.replace("FBC:FB:SpecCode:", "")).head
 	val idGBIF = ids.filter(_.startsWith("GBIF:")).map(_.replace("GBIF:", "")).head 
-	val idsFood = foodIds.split("\\|").map(_.trim).filter(_.startsWith("GBIF")).map(_.replace("GBIF:", "").toInt)
+	val idsFood = foodIds.split("\\|").map(_.trim).filter(_.startsWith("GBIF:")).map(_.replace("GBIF:", "").toInt)
 	idsFood.map(foodId => ((idFB.toInt, idGBIF.toInt, foodId), 1))
 }
 
@@ -71,10 +72,11 @@ case class CategoryOther(parentTaxon: Cat, childCategories: Seq[Cat])
       CategoryOther(Cat("Mollusca", "GBIF", 52),
         Seq(Cat("Polyplacophora", "GBIF", 346), Cat("Bivalvia", "GBIF", 137),
           Cat("Gastropoda", "GBIF", 225), Cat("Cephalopoda", "GBIF", 136))),
+      CategoryOther(Cat("Brachiopoda", "GBIF", 110), Seq()),
       CategoryOther(Cat("Arthropoda", "GBIF", 54),
         Seq(Cat("Ostracoda", "GBIF", 353), Cat("Maxillopoda", "GBIF", 203),
           Cat("Malacostraca", "GBIF", 229),
-          Cat("Insecta", "GBIF", 216), Cat("Brachiopoda", "GBIF", 110))),
+          Cat("Insecta", "GBIF", 216))),
       CategoryOther(Cat("Echinodermata", "GBIF", 50),
         Seq(Cat("Ophiuroidea", "GBIF", 350), Cat("Echinoidea", "GBIF", 221),
           Cat("Holothuroidea", "GBIF", 222))),
@@ -85,7 +87,7 @@ case class CategoryOther(parentTaxon: Cat, childCategories: Seq[Cat])
       CategoryOther(Cat("Plantae", "GBIF", 6), Seq()),
       CategoryOther(Cat("Animalia", "GBIF", 1),
         Seq(Cat("Cnidaria", "GBIF", 43, false), Cat("Annelida", "GBIF", 42, false),
-          Cat("Mollusca", "GBIF", 52, false), Cat("Arthropoda", "GBIF", 54, false),
+          Cat("Mollusca", "GBIF", 52, false), Cat("Arthropoda", "GBIF", 54, false), Cat("Brachiopoda", "GBIF", 110, false),
           Cat("Echinodermata", "GBIF", 50, false), Cat("Chordata", "GBIF", 44, false))))
 
      val dietMatrix = categoriesOther.flatMap(cat => {
@@ -110,4 +112,4 @@ val columnNames = List("predator.name", "SpecCode", "gbif.taxon.id", "dietary.ni
 
 val columns = columnNames.zipWithIndex.map{ case(v,i) => $"value"(i) as s"$v" }
 
-dmFlattened.toDF.select(columns: _*).coalesce(1).write.option("header",true).option("delimiter", "\t").mode("overwrite").csv(s"$baseDir/fbConsumerAndFood.tsv")
+dmFlattened.toDF.select(columns: _*).distinct.coalesce(1).write.option("header",true).option("delimiter", "\t").mode("overwrite").csv(s"$baseDir/fbConsumerAndFood.tsv")
