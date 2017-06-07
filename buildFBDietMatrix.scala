@@ -73,7 +73,7 @@ case class CategoryOther(parentTaxon: Cat, childCategories: Seq[Cat])
           Cat("Gastropoda", "GBIF", 225), Cat("Cephalopoda", "GBIF", 136))),
       CategoryOther(Cat("Arthropoda", "GBIF", 54),
         Seq(Cat("Ostracoda", "GBIF", 353), Cat("Maxillopoda", "GBIF", 203),
-          Cat("Malacostraca", "GBIF", 229), Cat("Crustacea", "ITIS", 83677),
+          Cat("Malacostraca", "GBIF", 229),
           Cat("Insecta", "GBIF", 216), Cat("Brachiopoda", "GBIF", 110))),
       CategoryOther(Cat("Echinodermata", "GBIF", 50),
         Seq(Cat("Ophiuroidea", "GBIF", 350), Cat("Echinoidea", "GBIF", 221),
