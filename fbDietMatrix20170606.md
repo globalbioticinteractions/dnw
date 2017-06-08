@@ -27,7 +27,7 @@ produces the fish diet matrix with configured prey categories.
 
 # post processing
 
-The resulting diet matrix can now be used to link to fishbase resources (see https://github.com/jhpoelen/fishbase_cache/releases/ by SpecCode) or using R libraries like rgbif, to retrieve occurrence counts or other information.
+The resulting diet matrix can now be used to link to fishbase resources (see https://github.com/jhpoelen/fishbase_archiver/releases by SpecCode) or using R libraries like rgbif, to retrieve occurrence counts or other information.
 
 ## example ecology_fishbase.tsv integation
 
