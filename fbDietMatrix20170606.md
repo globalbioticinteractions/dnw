@@ -50,6 +50,7 @@ diet$gbif.taxon.occ.count <- lapply(diet$gbif.taxon.id, function(taxonKey) {
 	httr::content(resp)
 })
 message('all done.')
+```
 
 # remaining issues
 
