@@ -1,0 +1,203 @@
+---
+title: "DietTable and DNW"
+author: "BH & JP"
+date: '2017-06-07'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load packages
+```{r}
+library(httr)
+library(plyr)
+library(ggplot2)
+library(mgcv)
+library(reshape2)
+library(gtools)
+
+```
+
+
+
+
+## Things to do
+
+Read in fish DietTable form globi and fish ecology table from globi-fishbase
+Cobine files and select relevant columns (i.e diet, habitat (marine/freshwater), trophic level)
+
+NOTE - no consumers prey on chondricthyes or clittelata - these can be removed but not rightn now as that will mess up the code...
+
+
+```{r}
+ecology <- read.csv('ecology_fishbase.csv')
+diet <- read.csv('fbDietMatrix20170607.tsv', sep='\t')
+dietEcology <- merge(x = diet, y = ecology, by = 'SpecCode')
+
+diet.sum<-dietEcology[,c(1:33, 63,68,73,74,79,80)]
+
+```
+
+
+## Convert diet to presence/absence
+
+Replace diet values with 1/0
+
+
+```{r}
+diet.sum[,c(5:33)][diet.sum[,c(5:33)] > 0] <- 1
+```
+
+
+## Generate number of GBIF occurences and test relationship with DNW
+
+The next step is to determine the number of occurence of each species in GBIF.
+
+Dieatry niche width may be a function of data availability so need to test this before doing any subsequent analysis with DNW values
+
+Script to retrieve GBIF occ by GBIF id - this takes 10-15 mins to run so avoid where possible
+to save time I have saved the GBIF counts in a seperate DF, delete these lines from the final script...
+```{r}
+
+diet.sum$gbif.taxon.occ.count <- lapply(diet.sum$gbif.taxon.id, function(taxonKey) {
+	resp <- httr::GET(paste('http://api.gbif.org/v1/occurrence/count?taxonKey=',taxonKey, sep=""))
+	message('.', appendLF=FALSE)
+	httr::stop_for_status(resp)
+	httr::content(resp)
+})
+
+diet.sum$gbif.taxon.occ.count <- unlist(diet.sum$gbif.taxon.occ.count)
+diet.sum<-subset(diet.sum, gbif.taxon.occ.count > 0)
+diet.sum$OCClog <- log(diet.sum$gbif.taxon.occ.count)
+GBIF<-diet.sum[,c(1:3,40)]
+
+```
+
+
+##Split diet table into marine and freshwater fishes
+
+#Marine
+
+subset to only fish recorded in marine habitats
+Generate DNW measurement n prey types / total prey types (29)
+Remove any species with DNW = 0
+
+```{r}
+
+marine<-subset(diet.sum, Marine == -1 & Freshwater == 0)
+marine$DNW<-rowSums(marine[,c(5:8,10:26,28:33)])/27 #remove clitelata and chondrythes now...
+marine<-subset(marine, DNW > 0)
+
+```
+
+
+Plot relationship between DNW and GBIF occurences, GBIF occurences are log transformed to normalise the range
+
+```{r}
+ggplot(marine, aes(OCClog, DNW)) +
+  geom_point() +
+  geom_smooth(method = "loess")
+
+```
+Positive relationship between DNW and OCClog
+Run a gam to 'correct' for this relationship.
+DNWcorr is the residuals of this model and will be used for subsequent analysis
+
+```{r}
+gam.marine<-gam(DNW ~ s(OCClog), data=marine)
+summary(gam.marine)
+marine$DNWcorr<-residuals(gam.marine)
+marine$biome<-"Marine"
+
+```
+
+##Freshwater
+
+subset to only get species observed in Freshwater
+
+Several prey groups (namely; cnidaria.other, Anthozoa, Clitellata, Polyplacophora, Cephalopoda, Brachiopoda, Echinodermata, Ophiuroidea, Holothuroidea) are exclusively marine groups and were not recorded in the diet of freshwater fish. These groups were removed from DNW calculation. 
+
+NOTE - Cnidaria.other, Cephalopoda & Echinodermata were prey categories for a small number (n<10) freshwater fishes. In some cases this is anadromous species (eg Onchyrinchus sp.) but others (eg cyprinids: Tinca tinca, Rutilus rutilus) seem strange. These may require some futher checking of GLOBI sources....
+
+Next step is to caculate DNW for freshwater fishes, n prey types / total prey types (18)
+
+```{r}
+fresh<-subset(diet.sum, Marine == 0 & Freshwater == -1)
+summary(fresh)
+fresh<-fresh[,-c(5,6,9,11,14,15,21:24,27)]
+fresh$DNW<-rowSums(fresh[,c(5:22)])/18
+fresh<-subset(fresh, DNW > 0)
+
+
+```
+
+
+
+Plot relationship between DNW and GBIF occurences, GBIF occurences are log transformed to normalise the range
+
+```{r}
+ggplot(fresh, aes(OCClog, DNW)) +
+  geom_point() +
+  geom_smooth(method = "loess")
+
+```
+Positive relationship between DNW and OCClog
+Run a gam to 'correct' for this relationship.
+DNWcorr is the residuals of this model and will be used for subsequent analysis
+
+```{r}
+gam.fresh<-gam(DNW ~ s(OCClog), data=fresh)
+summary(gam.fresh)
+fresh$DNWcorr<-residuals(gam.fresh)
+fresh$biome<-"Fresh"
+
+```
+
+## Combine marine and freshwater datasets as new DietTable
+
+Combine marine and freshwater datasets
+Quick plot to check everything and compare between biomes
+
+```{r}
+
+DietTable<-smartbind(marine, fresh)
+write.csv(DietTable, "DietTable.csv")
+ggplot(DietTable, aes(DNWcorr, fill=biome, colour=biome)) +
+  geom_density(alpha=0.2) 
+
+
+
+```
+ 
+ Now for some fun comparisons....
+ 
+ is there any relationship between niche width and trophic level?
+ First need to change TL values from factor to numberic
+ 
+```{r}
+DietTable$DietTroph<-as.numeric(DietTable$DietTroph)
+DietTable$FoodTroph<-as.numeric(DietTable$FoodTroph)
+ggplot(DietTable, aes(y = DNWcorr, x = FoodTroph/100, colour=biome)) +
+  geom_point(colour = "grey") +
+  geom_smooth(method = "loess") +
+  facet_grid(. ~ biome)
+
+
+```
+
+
+
+
+PCA to search for trends in diet - nothing obvious, likely that the opresence absence 
+
+```{r}
+mar.PC<-marine[,c(5:8,10:26,28:33)]
+summary(DietTable)
+marine.pca <- prcomp(mar.PC, scale = TRUE) 
+biplot(marine.pca)
+summary(marine.pca)
+
+
+```
