@@ -1,9 +1,6 @@
 
 import spark.implicits._                                                                                                           
 
-val dietMatrix = Seq((id: Int) => id == 1) 
-
-
 var baseDir = "/home/jorrit/proj/globi/hayden2017"
 var numberOfPartitions = 200
 //val interactionsFile = "interactions1k.tsv"
@@ -60,40 +57,49 @@ val dietPathIdsForFish = dietReducedForFish.map { case ((fb, gbif, food), count)
 
 var dietPathEntriesFish = taxonIdPathId.rdd.join(dietPathIdsForFish).map { case(food, (pathIds, (count, (fb, gbif)))) => ((fb, gbif), pathIds, count) }
 
-case class Cat(name: String, ns: String, id: Int, hasSubCategories: Boolean = true)
+case class Cat(name: String, ns: String, partOf: (Seq[Int] => Boolean), hasSubCategories: Boolean = true)
 case class CategoryOther(parentTaxon: Cat, childCategories: Seq[Cat])
 
+def CatMatch(ids: Seq[Int]) = {
+  (x: Seq[Int]) => (x intersect ids).nonEmpty
+}
+def CatMatch(id: Int) = {
+  (x: Seq[Int]) => x contains id
+}
+
      val categoriesOther = Seq(
-      CategoryOther(Cat("Cnidaria", "GBIF", 43),
-        Seq(Cat("Anthozoa", "GBIF", 206))),
-      CategoryOther(Cat("Annelida", "GBIF", 42),
-        Seq(Cat("Polychaeta", "GBIF", 256), Cat("Clitellata", "GBIF", 255))),//,
+      CategoryOther(Cat("Cnidaria", "GBIF", CatMatch(43)),
+        Seq(Cat("Anthozoa", "GBIF", CatMatch(206)))),
+      CategoryOther(Cat("Annelida", "GBIF", CatMatch(42)),
+        Seq(Cat("Polychaeta", "GBIF", CatMatch(256)), Cat("Clitellata", "GBIF", CatMatch(255)))),//,
           //Cat("Archiannelida", "no:match"))), // this taxon appears to be dubious (https://en.wikipedia.org/wiki/Haplodrili)
-      CategoryOther(Cat("Mollusca", "GBIF", 52),
-        Seq(Cat("Polyplacophora", "GBIF", 346), Cat("Bivalvia", "GBIF", 137),
-          Cat("Gastropoda", "GBIF", 225), Cat("Cephalopoda", "GBIF", 136))),
-      CategoryOther(Cat("Brachiopoda", "GBIF", 110), Seq()),
-      CategoryOther(Cat("Arthropoda", "GBIF", 54),
-        Seq(Cat("Ostracoda", "GBIF", 353), Cat("Maxillopoda", "GBIF", 203),
-          Cat("Malacostraca", "GBIF", 229),
-          Cat("Insecta", "GBIF", 216))),
-      CategoryOther(Cat("Echinodermata", "GBIF", 50),
-        Seq(Cat("Ophiuroidea", "GBIF", 350), Cat("Echinoidea", "GBIF", 221),
-          Cat("Holothuroidea", "GBIF", 222))),
-      CategoryOther(Cat("Chordata", "GBIF", 44),
-        Seq(Cat("Actinopterygii", "GBIF", 204), Cat("Elasmobranchii", "GBIF", 121), Cat("Holocephali", "GBIF", 120),
-          Cat("Amphibia", "GBIF", 131), Cat("Reptilia", "GBIF", 358),
-          Cat("Aves", "GBIF", 212), Cat("Mammalia", "GBIF", 359))),
-      CategoryOther(Cat("Plantae", "GBIF", 6), Seq()),
-      CategoryOther(Cat("Animalia", "GBIF", 1),
-        Seq(Cat("Cnidaria", "GBIF", 43, false), Cat("Annelida", "GBIF", 42, false),
-          Cat("Mollusca", "GBIF", 52, false), Cat("Arthropoda", "GBIF", 54, false), Cat("Brachiopoda", "GBIF", 110, false),
-          Cat("Echinodermata", "GBIF", 50, false), Cat("Chordata", "GBIF", 44, false))))
+      CategoryOther(Cat("Mollusca", "GBIF", CatMatch(52)),
+        Seq(Cat("Polyplacophora", "GBIF", CatMatch(346)), Cat("Bivalvia", "GBIF", CatMatch(137)),
+          Cat("Gastropoda", "GBIF", CatMatch(225)), Cat("Cephalopoda", "GBIF",CatMatch(136)))),
+      CategoryOther(Cat("Brachiopoda", "GBIF", CatMatch(110)), Seq()),
+      CategoryOther(Cat("Arthropoda", "GBIF", CatMatch(54)),
+        Seq(Cat("Ostracoda", "GBIF", CatMatch(353)), Cat("Maxillopoda", "GBIF", CatMatch(203)),
+          Cat("Malacostraca", "GBIF", CatMatch(229)),
+          Cat("Insecta", "GBIF", CatMatch(216)))),
+      CategoryOther(Cat("Echinodermata", "GBIF", CatMatch(50)),
+        Seq(Cat("Ophiuroidea", "GBIF", CatMatch(350)), Cat("Echinoidea", "GBIF", CatMatch(221)),
+          Cat("Holothuroidea", "GBIF", CatMatch(222)))),
+      CategoryOther(Cat("Chordata", "GBIF", CatMatch(44)),
+        Seq(Cat("Actinopterygii", "GBIF", CatMatch(204)),
+          Cat("Elasmobranchii and Holocephali", "GBIF", CatMatch(Seq(121, 120))),
+          Cat("Amphibia", "GBIF", CatMatch(131)), Cat("Reptilia", "GBIF", CatMatch(358)),
+          Cat("Aves", "GBIF", CatMatch(212)), Cat("Mammalia", "GBIF", CatMatch(359)))),
+      CategoryOther(Cat("Plantae", "GBIF", CatMatch(6)), Seq()),
+      CategoryOther(Cat("Animalia", "GBIF", CatMatch(1)),
+        Seq(Cat("Cnidaria", "GBIF", CatMatch(43), false), Cat("Annelida", "GBIF", CatMatch(42), false),
+          Cat("Mollusca", "GBIF", CatMatch(52), false), Cat("Arthropoda", "GBIF", CatMatch(54), false),
+          Cat("Brachiopoda", "GBIF", CatMatch(110), false), Cat("Echinodermata", "GBIF", CatMatch(50), false),
+          Cat("Chordata", "GBIF", CatMatch(44), false))))
 
      val dietMatrix = categoriesOther.flatMap(cat => {
-       val idChildren = cat.childCategories.map(_.id)
-       val otherCat = List((x: Seq[Int]) => x.contains(cat.parentTaxon.id) && x.intersect(idChildren).isEmpty)
-       val childCats = cat.childCategories.filter(_.hasSubCategories).map(child => (x1: Seq[Int]) => x1.contains(cat.parentTaxon.id) && x1.contains(child.id))
+       val childMatchers = cat.childCategories.map(_.partOf)
+       val otherCat = List((x: Seq[Int]) => cat.parentTaxon.partOf(x) && !childMatchers.map(_.apply(x)).reduce(_ || _))
+       val childCats = cat.childCategories.filter(_.hasSubCategories).map(child => (x1: Seq[Int]) => cat.parentTaxon.partOf(x1) && child.partOf(x1))
        otherCat ++ childCats
      })
 
