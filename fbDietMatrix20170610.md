@@ -1,4 +1,4 @@
-Notes on diet matrix [fbDietMatrix20170610.tsv](https://github.com/globalbioticinteractions/dnw/blob/master/fbDietMatrix20170610.tsv) created on 6 June 2017 using [buildFBDietMatrix.scala](https://github.com/globalbioticinteractions/dnw/blob/master/buildFBDietMatrix.scala) 
+Notes on diet matrix [fbDietMatrix20170610.tsv](https://github.com/globalbioticinteractions/dnw/blob/master/fbDietMatrix20170610.tsv) created on 6 June 2017 using [buildFBDietMatrix.scala](https://github.com/globalbioticinteractions/dnw/blob/9379eeddd6147ac208bdc948e3443e5f0c3c024b/buildFBDietMatrix.scala) 
 
 The first two columns are fishbase specCode, and GBIF taxonid respectively. The third column is the total number of prey categories reported through GloBI for the fish species. The numeric values for the individual prey categories is an indicator for the number of individual predator-prey GloBI records. This might be an indicator for how well studies a particular species is. For instance, Gadus morhua, http://www.globalbioticinteractions.org/?interactionType=interactsWith&sourceTaxon=FBC%3AFB%3ASpecCode%3A69 Fishbase SpecCode 69, has a ton of interaction records available.    
 
