@@ -81,7 +81,7 @@ case class CategoryOther(parentTaxon: Cat, childCategories: Seq[Cat])
         Seq(Cat("Ophiuroidea", "GBIF", 350), Cat("Echinoidea", "GBIF", 221),
           Cat("Holothuroidea", "GBIF", 222))),
       CategoryOther(Cat("Chordata", "GBIF", 44),
-        Seq(Cat("Actinopterygii", "GBIF", 204), Cat("Chondrichthyes", "ITIS", 914180),
+        Seq(Cat("Actinopterygii", "GBIF", 204), Cat("Elasmobranchii", "GBIF", 121), Cat("Holocephali", "GBIF", 120),
           Cat("Amphibia", "GBIF", 131), Cat("Reptilia", "GBIF", 358),
           Cat("Aves", "GBIF", 212), Cat("Mammalia", "GBIF", 359))),
       CategoryOther(Cat("Plantae", "GBIF", 6), Seq()),
