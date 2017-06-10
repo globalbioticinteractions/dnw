@@ -60,7 +60,7 @@ var dietPathEntriesFish = taxonIdPathId.rdd.join(dietPathIdsForFish).map { case(
 case class Cat(name: String, ns: String, partOf: (Seq[Int] => Boolean), hasSubCategories: Boolean = true)
 case class CategoryOther(parentTaxon: Cat, childCategories: Seq[Cat])
 
-def CatMatch(ids: Seq[Int]) = {
+def CatMatchMulti(ids: Seq[Int]) = {
   (x: Seq[Int]) => (x intersect ids).nonEmpty
 }
 def CatMatch(id: Int) = {
@@ -86,7 +86,7 @@ def CatMatch(id: Int) = {
           Cat("Holothuroidea", "GBIF", CatMatch(222)))),
       CategoryOther(Cat("Chordata", "GBIF", CatMatch(44)),
         Seq(Cat("Actinopterygii", "GBIF", CatMatch(204)),
-          Cat("Elasmobranchii and Holocephali", "GBIF", CatMatch(Seq(121, 120))),
+          Cat("Elasmobranchii.or.Holocephali", "GBIF", CatMatchMulti(Seq(121, 120))),
           Cat("Amphibia", "GBIF", CatMatch(131)), Cat("Reptilia", "GBIF", CatMatch(358)),
           Cat("Aves", "GBIF", CatMatch(212)), Cat("Mammalia", "GBIF", CatMatch(359)))),
       CategoryOther(Cat("Plantae", "GBIF", CatMatch(6)), Seq()),
@@ -98,7 +98,13 @@ def CatMatch(id: Int) = {
 
      val dietMatrix = categoriesOther.flatMap(cat => {
        val childMatchers = cat.childCategories.map(_.partOf)
-       val otherCat = List((x: Seq[Int]) => cat.parentTaxon.partOf(x) && !childMatchers.map(_.apply(x)).reduce(_ || _))
+       val otherCat = List((x: Seq[Int]) => {
+         def noChildMatches = {
+           val matches = childMatchers.map(_.apply(x))
+           if (matches.isEmpty) true else !matches.reduce(_ || _)
+         }
+         cat.parentTaxon.partOf(x) && noChildMatches
+       })
        val childCats = cat.childCategories.filter(_.hasSubCategories).map(child => (x1: Seq[Int]) => cat.parentTaxon.partOf(x1) && child.partOf(x1))
        otherCat ++ childCats
      })
