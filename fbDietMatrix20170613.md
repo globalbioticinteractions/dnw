@@ -1,5 +1,5 @@
-Notes on diet matrix [fbDietMatrix20170613.tsv](https://github.com/globalbioticinteractions/dnw/blob/master/fbDietMatrix20170610.tsv) created on 13 June 2017 using [buildFBDietMatrix.scala](https://github.com/globalbioticinteractions/dnw/blob/9379eeddd6147ac208bdc948e3443e5f0c3c024b/buildFBDietMatrix.scala) 
-Also, the notes include generation of associated references [fbDietMatrixReferences20170613.tsv](https://github.com/globalbioticinteractions/dnw/blob/master/fbDietMatrix20170610.tsv) created on 13 June 2017 using [buildReferenceList.scala](https://github.com/globalbioticinteractions/dnw/blob/9379eeddd6147ac208bdc948e3443e5f0c3c024b/buildReferenceList.scala) 
+Notes on diet matrix [fbDietMatrix20170613.tsv](https://github.com/globalbioticinteractions/dnw/blob/aa46017f70e7ad7539971e884428671a2ec1c910/fbDietMatrix20170613.tsv) created on 13 June 2017 using [buildFBDietMatrix.scala](https://github.com/globalbioticinteractions/dnw/blob/aa46017f70e7ad7539971e884428671a2ec1c910/buildFBDietMatrix.scala) 
+Also, the notes include generation of associated references [fbDietMatrixReferences20170613.tsv](https://github.com/globalbioticinteractions/dnw/blob/aa46017f70e7ad7539971e884428671a2ec1c910/fbDietMatrixReferences20170613.tsv) created on 13 June 2017 using [buildReferenceList.scala](https://github.com/globalbioticinteractions/dnw/blob/aa46017f70e7ad7539971e884428671a2ec1c910/buildReferenceList.scala) 
 
 The first two columns are fishbase specCode, and GBIF taxonid respectively. The third column is the total number of prey categories reported through GloBI for the fish species. The numeric values for the individual prey categories is an indicator for the number of individual predator-prey GloBI records. This might be an indicator for how well studies a particular species is. For instance, Gadus morhua, http://www.globalbioticinteractions.org/?interactionType=interactsWith&sourceTaxon=FBC%3AFB%3ASpecCode%3A69 Fishbase SpecCode 69, has a ton of interaction records available.    
 
@@ -12,7 +12,6 @@ The first two columns are fishbase specCode, and GBIF taxonid respectively. The 
 # configuration
 the following spark configuration (```[spark dir]/conf/spark-defaults.conf```) was used:
 ```
-spark.serializer                 org.apache.spark.serializer.KryoSerializer
 spark.driver.memory              1g
 spark.default.parallelism        400
 spark.debug.maxToStringFields    250
