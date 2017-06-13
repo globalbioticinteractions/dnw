@@ -7,7 +7,7 @@ The first two columns are fishbase specCode, and GBIF taxonid respectively. The 
 
 1. Spark version 2.1.1
 1. Scala version 2.11.6
-1. interaction.tsv / taxonCache.tsv retrieved from http://globalbioticinteractions.org/references 
+1. interaction.tsv (sha256: c46e398e19b1e43f9317518c3e6b53b3f96833c55ea2514c08708e0a3ec6a751) / taxonCache.tsv (sha256: dd0b2e1a76aa45965d1bc8a85157c69163308b1dd9828c7d7513890044c2b9a6) retrieved from http://globalbioticinteractions.org/references 
 
 # configuration
 the following spark configuration (```[spark dir]/conf/spark-defaults.conf```) was used:
